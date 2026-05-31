@@ -1,0 +1,66 @@
+<article class="crop-card">
+    <div class="crop-card-head">
+        <div class="crop-title-wrap">
+            {% if prediction.image_url %}
+                <img src="{{ prediction.image_url }}" alt="{{ prediction.commodity }}" loading="lazy">
+            {% endif %}
+            <div>
+                <span data-crop-name="{{ prediction.commodity }}">{{ prediction.commodity }}</span>
+                <strong>Rs. {{ prediction.current_price }}/{{ prediction.unit }}</strong>
+                {% if prediction.is_seasonal %}
+                    <em><span data-season-name>{{ prediction.season_name }}</span> <span data-i18n="crop">crop</span></em>
+                {% endif %}
+            </div>
+        </div>
+        <div class="price-badge {{ prediction.direction }}" data-direction="{{ prediction.direction }}">
+            {{ prediction.direction|title }}
+        </div>
+    </div>
+
+    <div class="crop-stats">
+        <div>
+            <span data-i18n="minPrice">Min Price</span>
+            <strong>Rs. {{ prediction.min_price }}</strong>
+        </div>
+        <div>
+            <span data-i18n="maxPrice">Max Price</span>
+            <strong>Rs. {{ prediction.max_price }}</strong>
+        </div>
+        <div>
+            <span data-i18n="forecast4">4 Week Forecast</span>
+            <strong>Rs. {{ prediction.future[-1].price }}</strong>
+        </div>
+    </div>
+
+    <div class="pie-chart">
+        <svg viewBox="0 0 200 200" role="img" aria-label="{{ prediction.commodity }} price pie chart">
+            {% for slice in prediction.pie_slices %}
+                <path class="pie-slice {{ slice.class }}" d="{{ slice.path }}">
+                    <title>{{ slice.label }}: {{ slice.percent }}%</title>
+                </path>
+            {% endfor %}
+            <circle class="pie-hole" cx="100" cy="100" r="42"></circle>
+            <text class="pie-main" x="100" y="94">Rs. {{ prediction.current_price }}</text>
+            <text class="pie-sub" x="100" y="114" data-i18n="current">Current</text>
+        </svg>
+        <div class="pie-legend">
+            {% for slice in prediction.pie_slices %}
+                <span class="{{ slice.class }}">
+                    <i></i><span data-slice-label="{{ slice.label }}">{{ slice.label }}</span> {{ slice.percent }}%
+                </span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="signal-row">
+        <span><span data-i18n="rain">Rain</span>: {{ prediction.rain_level|title }}</span>
+        <span><span data-i18n="states">States</span>: {{ prediction.state_count }}</span>
+        <span><span data-i18n="records">Records</span>: {{ prediction.record_count }}</span>
+        {% if prediction.is_seasonal %}
+            <span><span data-i18n="seasonal">Seasonal</span>: <span data-crop-name="{{ prediction.season_match }}">{{ prediction.season_match }}</span></span>
+        {% endif %}
+        {% if prediction.latest_date %}
+            <span><span data-i18n="date">Date</span>: {{ prediction.latest_date }}</span>
+        {% endif %}
+    </div>
+</article>

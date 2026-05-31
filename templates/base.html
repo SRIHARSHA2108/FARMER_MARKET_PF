@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Farmer Market{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a class="brand" href="{{ url_for('landing') }}" data-i18n="brand">Farmer Market</a>
+        <div class="nav-links">
+            <div class="language-tools">
+                <button type="button" class="small-tool active" data-lang-button="en">English</button>
+                <button type="button" class="small-tool" data-lang-button="kn">ಕನ್ನಡ</button>
+                <button type="button" class="small-tool voice-tool" data-speak-page data-i18n="speak">Speak</button>
+                <button type="button" class="small-tool" data-stop-speech data-i18n="stopVoice">Stop</button>
+            </div>
+            {% if session.get("user_email") %}
+                <a href="{{ url_for('dashboard') }}" data-i18n="dashboard">Dashboard</a>
+                <a href="{{ url_for('logout') }}" data-i18n="logout">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" data-i18n="login">Login</a>
+                <a class="button-link" href="{{ url_for('register') }}" data-i18n="register">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-wrap">
+                    {% for category, message in messages %}
+                        <p class="flash {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+    <script src="{{ url_for('static', filename='language_en.js') }}"></script>
+    <script src="{{ url_for('static', filename='language_kn.js') }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

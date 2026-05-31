@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Market | Fresh Local Food{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <p class="eyebrow" data-i18n="landingEyebrow">Local produce, direct from farmers</p>
+        <h1 data-i18n="landingTitle">Sell fresh farm products with confidence.</h1>
+        <p class="hero-text" data-i18n="landingText">
+            A simple Farmer Market portal where customers and farmers can create accounts,
+            login, and manage their profile from a dashboard.
+        </p>
+        <div class="actions">
+            <a class="primary-btn" href="{{ url_for('register') }}" data-i18n="createAccount">Create Account</a>
+            <a class="secondary-btn" href="{{ url_for('login') }}" data-i18n="login">Login</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

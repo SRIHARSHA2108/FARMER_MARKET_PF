@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Farmer Market{% endblock %}
+
+{% block content %}
+<section class="dashboard">
+    <div class="dashboard-hero">
+        <div>
+            <p class="eyebrow" data-i18n="dashboard">Dashboard</p>
+            <h1><span data-i18n="hello">Hello</span>, {{ name }}</h1>
+            <p data-i18n="heroText">Live prices, seasonal picks, weather signals, and crop forecast visuals.</p>
+        </div>
+        <a class="secondary-btn" href="{{ url_for('logout') }}" data-i18n="logout">Logout</a>
+    </div>
+
+    <div class="stats-grid">
+        <article class="stat-card">
+            <span class="stat-icon" data-i18n="user">User</span>
+            <strong>{{ name }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-icon" data-i18n="email">Email</span>
+            <strong>{{ email }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-icon" data-i18n="role">Role</span>
+            <strong>{{ role }}</strong>
+        </article>
+    </div>
+
+    <section class="market-panel auto-market">
+        <div class="market-title">
+            <div>
+                <p class="eyebrow" data-i18n="predictor">Automatic Market Predictor</p>
+                <h2 data-i18n="allForecasts">All Crop Price Forecasts</h2>
+            </div>
+            <div class="weather-card">
+                <span>{{ weather.source }}</span>
+                <strong>{{ weather.temperature }}°C · {{ weather.rain_level|title }} Rain</strong>
+                <small>{{ weather.rain_mm }} mm · {{ weather.updated_at }}</small>
+            </div>
+        </div>
+
+        <p class="market-note">
+            <span data-i18n="priceSource">Prices come from public market pages. Karnataka values come from the Karnataka page; all-India values are averaged from multiple public state pages.</span>
+        </p>
+
+        <section class="season-panel">
+            <div>
+                <p class="eyebrow" data-i18n="seasonalCrops">Seasonal Crops</p>
+                <h3><span data-season-name>{{ season.name }}</span> <span data-i18n="season">Season</span> · {{ season.month }}</h3>
+                <p data-season-note="{{ season.name }}">{{ season.note }}</p>
+            </div>
+            {% if seasonal_predictions %}
+                <div class="season-picks">
+                    {% for prediction in seasonal_predictions %}
+                        <span><span data-crop-name="{{ prediction.commodity }}">{{ prediction.commodity }}</span> · Rs. {{ prediction.current_price }}/{{ prediction.unit }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="season-picks">
+                    <span>No matching seasonal crop found in today's Karnataka prices.</span>
+                </div>
+            {% endif %}
+        </section>
+
+        <div class="market-section">
+            <h3 data-i18n="karnatakaPrices">Karnataka Live Vegetable Prices</h3>
+            {% if karnataka_error %}
+                <div class="empty-state">{{ karnataka_error }}</div>
+            {% else %}
+                <div class="auto-grid">
+                    {% for prediction in karnataka_predictions %}
+                        {% include "partials/crop_card.html" %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="market-section">
+            <h3 data-i18n="indiaPrices">All India Live Vegetable Prices</h3>
+            {% if india_error %}
+                <div class="empty-state">{{ india_error }}</div>
+            {% else %}
+                <div class="auto-grid">
+                    {% for prediction in india_predictions %}
+                        {% include "partials/crop_card.html" %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</section>
+{% endblock %}
