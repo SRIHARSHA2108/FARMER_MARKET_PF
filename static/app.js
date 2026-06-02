@@ -49,6 +49,40 @@
             button.classList.toggle("active", button.getAttribute("data-lang-button") === language);
         });
         localStorage.setItem("farmerMarketLanguage", language);
+        filterCrops();
+    }
+
+    function getSearchableText(card, languageModule) {
+        const names = Array.from(card.querySelectorAll("[data-crop-name]")).map((element) => {
+            const originalName = element.getAttribute("data-crop-name") || "";
+            return `${originalName} ${languageModule.translateCropName(originalName)}`;
+        });
+        return `${card.textContent} ${names.join(" ")}`.toLowerCase();
+    }
+
+    function filterCrops() {
+        const input = document.querySelector("[data-crop-search]");
+        if (!input) {
+            return;
+        }
+        const languageModule = getLanguageModule(getLanguage());
+        const query = input.value.trim().toLowerCase();
+        let visibleCount = 0;
+        document.querySelectorAll(".crop-card").forEach((card) => {
+            const isMatch = !query || getSearchableText(card, languageModule).includes(query);
+            card.hidden = !isMatch;
+            if (isMatch) {
+                visibleCount += 1;
+            }
+        });
+
+        const countElement = document.querySelector("[data-search-count]");
+        if (countElement) {
+            const dictionary = languageModule.translations;
+            countElement.textContent = visibleCount
+                ? `${visibleCount} ${dictionary.resultsFound}`
+                : dictionary.noResults;
+        }
     }
 
     function buildSpeechContext(languageModule) {
@@ -97,5 +131,9 @@
         document.querySelectorAll("[data-stop-speech]").forEach((button) => {
             button.addEventListener("click", stopSpeech);
         });
+        document.querySelectorAll("[data-crop-search]").forEach((input) => {
+            input.addEventListener("input", filterCrops);
+        });
+        filterCrops();
     });
 })();

@@ -52,6 +52,10 @@
             emailPlaceholder: "Enter your email",
             passwordPlaceholder: "Enter your password",
             createPasswordPlaceholder: "Create a password",
+            searchLabel: "Search crops",
+            searchPlaceholder: "Search tomato, onion, potato...",
+            resultsFound: "crops found",
+            noResults: "No crops found",
         },
         cropNames: {},
         sliceLabels: {

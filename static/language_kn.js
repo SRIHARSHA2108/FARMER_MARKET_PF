@@ -52,6 +52,10 @@
             emailPlaceholder: "ನಿಮ್ಮ ಇಮೇಲ್ ನಮೂದಿಸಿ",
             passwordPlaceholder: "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
             createPasswordPlaceholder: "ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿ",
+            searchLabel: "ಬೆಳೆ ಹುಡುಕಿ",
+            searchPlaceholder: "ಟೊಮೇಟೊ, ಈರುಳ್ಳಿ, ಆಲೂಗಡ್ಡೆ ಹುಡುಕಿ...",
+            resultsFound: "ಬೆಳೆಗಳು ಕಂಡುಬಂದಿವೆ",
+            noResults: "ಬೆಳೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
         },
         cropNames: {
             "amaranth leaves": "ದಂಟಿನ ಸೊಪ್ಪು",

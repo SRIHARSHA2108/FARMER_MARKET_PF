@@ -464,6 +464,35 @@ button {
     line-height: 1.6;
 }
 
+.search-panel {
+    display: grid;
+    grid-template-columns: 160px minmax(220px, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+.search-panel label {
+    margin: 0;
+    color: var(--green-dark);
+    font-weight: 800;
+}
+
+.search-panel input {
+    height: 42px;
+}
+
+.search-panel span {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .auto-market {
     padding: 28px;
     background:
@@ -1139,6 +1168,14 @@ button {
 
     .pie-legend {
         width: 100%;
+    }
+
+    .search-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .search-panel span {
+        white-space: normal;
     }
 
     .dashboard-hero {
