@@ -23,6 +23,16 @@
                 element.setAttribute("placeholder", dictionary[key]);
             }
         });
+        document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+            const key = element.getAttribute("data-i18n-title");
+            if (dictionary[key]) {
+                element.setAttribute("title", dictionary[key]);
+                element.setAttribute("aria-label", dictionary[key]);
+            }
+        });
+        document.querySelectorAll("[data-search-mic]").forEach((button) => {
+            button.textContent = dictionary.mic || "Mic";
+        });
         document.querySelectorAll("[data-crop-name]").forEach((element) => {
             const originalName = element.getAttribute("data-crop-name");
             element.textContent = languageModule.translateCropName(originalName);
@@ -83,6 +93,48 @@
                 ? `${visibleCount} ${dictionary.resultsFound}`
                 : dictionary.noResults;
         }
+    }
+
+    function startSearchMic(button) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const languageModule = getLanguageModule(getLanguage());
+        const dictionary = languageModule.translations;
+        if (!SpeechRecognition) {
+            alert(dictionary.speechNotSupported);
+            return;
+        }
+
+        const input = document.querySelector("[data-crop-search]");
+        if (!input) {
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = languageModule.speechCode;
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        button.classList.add("listening");
+        button.textContent = dictionary.listening;
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.trim();
+            input.value = transcript;
+            filterCrops();
+            input.focus();
+        };
+
+        recognition.onend = () => {
+            button.classList.remove("listening");
+            button.textContent = dictionary.mic || "Mic";
+        };
+
+        recognition.onerror = () => {
+            button.classList.remove("listening");
+            button.textContent = dictionary.mic || "Mic";
+        };
+
+        recognition.start();
     }
 
     function buildSpeechContext(languageModule) {
@@ -162,6 +214,9 @@
         });
         document.querySelectorAll("[data-crop-search]").forEach((input) => {
             input.addEventListener("input", filterCrops);
+        });
+        document.querySelectorAll("[data-search-mic]").forEach((button) => {
+            button.addEventListener("click", () => startSearchMic(button));
         });
         filterCrops();
     });

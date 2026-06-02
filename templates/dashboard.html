@@ -47,7 +47,10 @@
 
         <div class="search-panel">
             <label for="cropSearch" data-i18n="searchLabel">Search crops</label>
-            <input id="cropSearch" type="search" data-crop-search placeholder="Search tomato, onion, potato..." data-i18n-placeholder="searchPlaceholder">
+            <div class="search-input-wrap">
+                <input id="cropSearch" type="search" data-crop-search placeholder="Search tomato, onion, potato..." data-i18n-placeholder="searchPlaceholder">
+                <button type="button" class="mic-btn" data-search-mic data-i18n-title="micTitle" title="Speak crop name">Mic</button>
+            </div>
             <span data-search-count></span>
         </div>
 

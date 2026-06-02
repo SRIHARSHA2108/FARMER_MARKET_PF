@@ -486,6 +486,32 @@ button {
     height: 42px;
 }
 
+.search-input-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+}
+
+.search-input-wrap input {
+    min-width: 0;
+}
+
+.mic-btn {
+    width: auto;
+    min-height: 42px;
+    margin: 0;
+    padding: 0 14px;
+    background: var(--green);
+    border-color: var(--green);
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.mic-btn.listening {
+    background: var(--warning);
+    border-color: var(--warning);
+}
+
 .search-panel span {
     color: var(--muted);
     font-size: 13px;

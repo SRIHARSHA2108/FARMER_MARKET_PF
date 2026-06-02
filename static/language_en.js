@@ -57,6 +57,10 @@
             searchPlaceholder: "Search tomato, onion, potato...",
             resultsFound: "crops found",
             noResults: "No crops found",
+            micTitle: "Speak crop name",
+            mic: "Mic",
+            listening: "Listening",
+            speechNotSupported: "Voice search is not supported in this browser.",
         },
         cropNames: {},
         sliceLabels: {

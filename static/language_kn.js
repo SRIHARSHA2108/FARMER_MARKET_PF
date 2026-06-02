@@ -57,6 +57,10 @@
             searchPlaceholder: "ಟೊಮೇಟೊ, ಈರುಳ್ಳಿ, ಆಲೂಗಡ್ಡೆ ಹುಡುಕಿ...",
             resultsFound: "ಬೆಳೆಗಳು ಕಂಡುಬಂದಿವೆ",
             noResults: "ಬೆಳೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+            micTitle: "ಬೆಳೆ ಹೆಸರನ್ನು ಹೇಳಿ",
+            mic: "ಮೈಕ್",
+            listening: "ಕೇಳುತ್ತಿದೆ",
+            speechNotSupported: "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಹುಡುಕಾಟ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ.",
         },
         cropNames: {
             "amaranth leaves": "ದಂಟಿನ ಸೊಪ್ಪು",
