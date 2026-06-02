@@ -9,6 +9,7 @@
             login: "ಲಾಗಿನ್",
             register: "ನೋಂದಣಿ",
             speak: "ಓದಿ ಹೇಳಿ",
+            speakCrop: "ಬೆಳೆ ಓದಿ",
             stopVoice: "ನಿಲ್ಲಿಸಿ",
             hello: "ನಮಸ್ಕಾರ",
             heroText: "ಲೈವ್ ಬೆಲೆಗಳು, ಋತು ಬೆಳೆಗಳು, ಹವಾಮಾನ ಸೂಚನೆಗಳು ಮತ್ತು ಬೆಳೆ ಮುನ್ಸೂಚನೆ ಚಿತ್ರಣಗಳು.",
@@ -148,6 +149,13 @@
             const spokenPrice = price.replace("Rs.", "ರೂಪಾಯಿ");
             const spokenForecast = forecast.replace("Rs.", "ರೂಪಾಯಿ");
             return `${crop}, ಪ್ರಸ್ತುತ ಬೆಲೆ ${spokenPrice}, ನಾಲ್ಕು ವಾರಗಳ ಮುನ್ಸೂಚನೆ ${spokenForecast}.`;
+        },
+        buildSingleCropSpeech(context) {
+            const price = context.price.replace("Rs.", "ರೂಪಾಯಿ");
+            const minPrice = context.minPrice.replace("Rs.", "ರೂಪಾಯಿ");
+            const maxPrice = context.maxPrice.replace("Rs.", "ರೂಪಾಯಿ");
+            const forecast = context.forecast.replace("Rs.", "ರೂಪಾಯಿ");
+            return `${context.crop}. ಪ್ರಸ್ತುತ ಬೆಲೆ ${price}. ಕನಿಷ್ಠ ಬೆಲೆ ${minPrice}. ಗರಿಷ್ಠ ಬೆಲೆ ${maxPrice}. ನಾಲ್ಕು ವಾರಗಳ ಮುನ್ಸೂಚನೆ ${forecast}. ಮಳೆಯ ಸ್ಥಿತಿ ${context.rain}.`;
         },
     };
 })();

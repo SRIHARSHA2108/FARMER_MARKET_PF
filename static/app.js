@@ -114,6 +114,32 @@
         window.speechSynthesis.speak(utterance);
     }
 
+    function getCropCardSpeechContext(card, languageModule) {
+        const cropElement = card.querySelector("[data-crop-name]");
+        const crop = languageModule.translateCropName(cropElement?.getAttribute("data-crop-name") || cropElement?.textContent.trim() || "");
+        const price = card.querySelector(".crop-card-head strong")?.textContent.trim() || "";
+        const minPrice = card.querySelector(".crop-stats div:nth-child(1) strong")?.textContent.trim() || "";
+        const maxPrice = card.querySelector(".crop-stats div:nth-child(2) strong")?.textContent.trim() || "";
+        const forecast = card.querySelector(".crop-stats div:nth-child(3) strong")?.textContent.trim() || "";
+        const rain = card.querySelector(".signal-row span:nth-child(1)")?.textContent.trim() || "";
+        return { crop, price, minPrice, maxPrice, forecast, rain };
+    }
+
+    function speakCrop(card) {
+        if (!("speechSynthesis" in window)) {
+            alert("Speech is not supported in this browser.");
+            return;
+        }
+        const languageModule = getLanguageModule(getLanguage());
+        const utterance = new SpeechSynthesisUtterance(
+            languageModule.buildSingleCropSpeech(getCropCardSpeechContext(card, languageModule))
+        );
+        utterance.lang = languageModule.speechCode;
+        utterance.rate = 0.9;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    }
+
     function stopSpeech() {
         if ("speechSynthesis" in window) {
             window.speechSynthesis.cancel();
@@ -130,6 +156,9 @@
         });
         document.querySelectorAll("[data-stop-speech]").forEach((button) => {
             button.addEventListener("click", stopSpeech);
+        });
+        document.querySelectorAll("[data-speak-crop]").forEach((button) => {
+            button.addEventListener("click", () => speakCrop(button.closest(".crop-card")));
         });
         document.querySelectorAll("[data-crop-search]").forEach((input) => {
             input.addEventListener("input", filterCrops);

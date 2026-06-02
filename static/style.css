@@ -667,6 +667,23 @@ button {
     font-weight: 700;
 }
 
+.crop-actions {
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+}
+
+.crop-speak-btn {
+    width: auto;
+    min-height: 34px;
+    margin: 0;
+    padding: 0 10px;
+    background: #ffffff;
+    border-color: var(--green);
+    color: var(--green-dark);
+    font-size: 12px;
+}
+
 .crop-card .price-badge {
     min-width: 88px;
     padding: 8px 10px;
@@ -1185,6 +1202,10 @@ button {
 
     .crop-card-head {
         flex-direction: column;
+    }
+
+    .crop-actions {
+        justify-items: start;
     }
 
     .crop-title-wrap {

@@ -9,6 +9,7 @@
             login: "Login",
             register: "Register",
             speak: "Speak",
+            speakCrop: "Speak crop",
             stopVoice: "Stop",
             hello: "Hello",
             heroText: "Live prices, seasonal picks, weather signals, and crop forecast visuals.",
@@ -88,6 +89,9 @@
         },
         buildCropSpeech(crop, price, forecast) {
             return `${crop}, current price ${price}, four week forecast ${forecast}.`;
+        },
+        buildSingleCropSpeech(context) {
+            return `${context.crop}. Current price is ${context.price}. Minimum price is ${context.minPrice}. Maximum price is ${context.maxPrice}. Four week forecast is ${context.forecast}. Rain status is ${context.rain}.`;
         },
     };
 })();
