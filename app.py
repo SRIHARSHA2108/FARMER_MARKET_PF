@@ -14,7 +14,7 @@ from urllib.request import Request, urlopen
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError, PyMongoError
+from pymongo.errors import ConfigurationError, DuplicateKeyError, PyMongoError
 
 
 app = Flask(__name__)
@@ -23,6 +23,7 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret-key")
 MONGO_USERNAME = os.environ.get("MONGO_USERNAME", "Sriharsha")
 MONGO_PASSWORD = os.environ.get("MONGO_PASSWORD", "")
 MONGO_CLUSTER = os.environ.get("MONGO_CLUSTER", "cluster0.agoo1t9.mongodb.net")
+MONGO_CONFIG_ERROR = ""
 if os.environ.get("MONGO_URI"):
     MONGO_URI = os.environ["MONGO_URI"]
 elif MONGO_PASSWORD:
@@ -30,11 +31,19 @@ elif MONGO_PASSWORD:
         f"mongodb+srv://{quote_plus(MONGO_USERNAME)}:{quote_plus(MONGO_PASSWORD)}"
         f"@{MONGO_CLUSTER}/?appName=Cluster0"
     )
+elif os.environ.get("VERCEL"):
+    MONGO_URI = ""
+    MONGO_CONFIG_ERROR = (
+        "MongoDB Atlas is not configured on Vercel. Add MONGO_PASSWORD or MONGO_URI "
+        "in Vercel Project Settings > Environment Variables."
+    )
 else:
     MONGO_URI = "mongodb://localhost:27017/"
-client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-db = client["farmer_market_db"]
-users = db["users"]
+
+client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000, connect=False) if MONGO_URI else None
+db = client["farmer_market_db"] if client is not None else None
+users = db["users"] if db is not None else None
+DATABASE_READY = False
 
 PUBLIC_PRICE_BASE_URL = "https://www.vegetablemarketprice.com/market"
 
@@ -639,6 +648,12 @@ def build_all_predictions(price_items, weather, season):
 
 
 def ensure_database():
+    global DATABASE_READY
+    if DATABASE_READY:
+        return
+    if users is None:
+        raise ConfigurationError(MONGO_CONFIG_ERROR or "MongoDB is not configured.")
+
     indexes = users.index_information()
     if "email_1" in indexes:
         users.drop_index("email_1")
@@ -647,6 +662,18 @@ def ensure_database():
         unique=True,
         partialFilterExpression={"phone": {"$exists": True}},
     )
+    DATABASE_READY = True
+
+
+def database_error_message():
+    if MONGO_CONFIG_ERROR:
+        return MONGO_CONFIG_ERROR
+    if os.environ.get("VERCEL"):
+        return (
+            "Could not connect to MongoDB Atlas. Check Vercel environment variables "
+            "and allow network access in MongoDB Atlas."
+        )
+    return "MongoDB is not running or not reachable. Check your database settings and try again."
 
 
 def get_ai_settings():
@@ -874,7 +901,7 @@ def register():
             flash("An account with this phone number already exists.", "danger")
             return redirect(url_for("register"))
         except PyMongoError:
-            flash("MongoDB is not running. Start MongoDB and try again.", "danger")
+            flash(database_error_message(), "danger")
             return redirect(url_for("register"))
 
         flash("Registration successful. Please login.", "success")
@@ -892,7 +919,7 @@ def login():
             ensure_database()
             user = users.find_one({"name": name, "phone": phone})
         except PyMongoError:
-            flash("MongoDB is not running. Start MongoDB and try again.", "danger")
+            flash(database_error_message(), "danger")
             return redirect(url_for("login"))
 
         if user:

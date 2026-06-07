@@ -121,6 +121,31 @@ Open in browser:
 http://127.0.0.1:5002
 ```
 
+## Vercel Database Setup
+
+In Vercel, add these Environment Variables in Project Settings:
+
+```text
+MONGO_USERNAME=Sriharsha
+MONGO_PASSWORD=your_mongodb_password
+MONGO_CLUSTER=cluster0.agoo1t9.mongodb.net
+FLASK_SECRET_KEY=any_long_random_secret
+```
+
+You can also use one full URI instead:
+
+```text
+MONGO_URI=mongodb+srv://Sriharsha:your_encoded_password@cluster0.agoo1t9.mongodb.net/?appName=Cluster0
+```
+
+In MongoDB Atlas, open **Network Access** and allow Vercel to connect. For student/demo deployment, use:
+
+```text
+0.0.0.0/0
+```
+
+After changing Vercel environment variables, redeploy the project.
+
 ## Optional Weather Location
 
 By default, the app uses Bengaluru coordinates for weather.
