@@ -33,6 +33,9 @@
         document.querySelectorAll("[data-search-mic]").forEach((button) => {
             button.textContent = dictionary.mic || "Mic";
         });
+        document.querySelectorAll("[data-chat-mic]").forEach((button) => {
+            button.textContent = dictionary.mic || "Mic";
+        });
         document.querySelectorAll("[data-chat-messages]").forEach((messages) => {
             if (!messages.children.length) {
                 addChatMessage(dictionary.chatWelcome, "bot");
@@ -228,6 +231,25 @@
         };
     }
 
+    function buildChatApiContext(languageModule) {
+        const crops = Array.from(document.querySelectorAll(".crop-card")).slice(0, 12).map((card) => {
+            const info = getCropInfoFromCard(card, languageModule);
+            return {
+                crop: info.translatedName,
+                originalCrop: info.originalName,
+                price: info.price,
+                minPrice: info.minPrice,
+                maxPrice: info.maxPrice,
+                forecast: info.forecast,
+            };
+        });
+        return {
+            weather: document.querySelector(".weather-card")?.innerText.trim() || "",
+            season: document.querySelector(".season-panel")?.innerText.trim() || "",
+            crops,
+        };
+    }
+
     function answerChat(question) {
         const languageModule = getLanguageModule(getLanguage());
         const responses = languageModule.chatResponses;
@@ -286,13 +308,99 @@
         }
     }
 
-    function submitChat(question) {
+    function speakText(text) {
+        if (!("speechSynthesis" in window)) {
+            return;
+        }
+        const languageModule = getLanguageModule(getLanguage());
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = languageModule.speechCode;
+        utterance.rate = 0.9;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    }
+
+    async function submitChat(question) {
         const cleanQuestion = question.trim();
         if (!cleanQuestion) {
             return;
         }
         addChatMessage(cleanQuestion, "user");
-        addChatMessage(answerChat(cleanQuestion), "bot");
+        const language = getLanguage();
+        const languageModule = getLanguageModule(language);
+        const dictionary = languageModule.translations;
+        let answer = "";
+
+        if (window.fetch) {
+            addChatMessage(dictionary.aiThinking, "bot");
+            try {
+                const response = await fetch("/api/chatbot", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        question: cleanQuestion,
+                        language,
+                        context: buildChatApiContext(languageModule),
+                    }),
+                });
+                const data = await response.json();
+                answer = data.answer || "";
+            } catch (error) {
+                answer = "";
+            }
+            const messages = document.querySelector("[data-chat-messages]");
+            const lastMessage = messages?.lastElementChild;
+            if (lastMessage?.textContent === dictionary.aiThinking) {
+                lastMessage.remove();
+            }
+        }
+
+        if (!answer) {
+            answer = answerChat(cleanQuestion);
+        }
+        addChatMessage(answer, "bot");
+        speakText(answer);
+    }
+
+    function startChatMic(button) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const languageModule = getLanguageModule(getLanguage());
+        const dictionary = languageModule.translations;
+        if (!SpeechRecognition) {
+            alert(dictionary.speechNotSupported);
+            return;
+        }
+
+        const input = document.querySelector("[data-chat-input]");
+        if (!input) {
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = languageModule.speechCode;
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        button.classList.add("listening");
+        button.textContent = dictionary.listening;
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.trim();
+            input.value = transcript;
+            submitChat(transcript);
+        };
+
+        recognition.onend = () => {
+            button.classList.remove("listening");
+            button.textContent = dictionary.mic || "Mic";
+        };
+
+        recognition.onerror = () => {
+            button.classList.remove("listening");
+            button.textContent = dictionary.mic || "Mic";
+        };
+
+        recognition.start();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -328,6 +436,9 @@
                 submitChat(input.value);
                 input.value = "";
             });
+        });
+        document.querySelectorAll("[data-chat-mic]").forEach((button) => {
+            button.addEventListener("click", () => startChatMic(button));
         });
         document.querySelectorAll("[data-chat-suggestion]").forEach((button) => {
             button.addEventListener("click", () => submitChat(button.textContent));

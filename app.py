@@ -9,9 +9,9 @@ from functools import wraps
 from html import unescape
 from statistics import mean
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError, PyMongoError
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -25,6 +25,11 @@ db = client["farmer_market_db"]
 users = db["users"]
 
 PUBLIC_PRICE_BASE_URL = "https://www.vegetablemarketprice.com/market"
+AI_PROVIDER = os.environ.get("AI_PROVIDER", "").lower()
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 PUBLIC_PRICE_STATES = {
     "andhra-pradesh": "Andhra Pradesh",
     "delhi": "Delhi",
@@ -585,6 +590,70 @@ def ensure_database():
     users.create_index("email", unique=True)
 
 
+def get_ai_settings():
+    if AI_PROVIDER == "openrouter" and OPENROUTER_API_KEY:
+        return {
+            "api_key": OPENROUTER_API_KEY,
+            "model": OPENROUTER_MODEL,
+            "url": "https://openrouter.ai/api/v1/chat/completions",
+            "provider": "openrouter",
+        }
+    if AI_PROVIDER == "groq" and GROQ_API_KEY:
+        return {
+            "api_key": GROQ_API_KEY,
+            "model": GROQ_MODEL,
+            "url": "https://api.groq.com/openai/v1/chat/completions",
+            "provider": "groq",
+        }
+    return None
+
+
+def ask_ai_assistant(question, language, context):
+    settings = get_ai_settings()
+    if not settings:
+        return None
+
+    language_name = "Kannada" if language == "kn" else "English"
+    system_prompt = (
+        "You are a helpful farmer market assistant. Answer briefly and clearly. "
+        "Use only the provided dashboard context for crop prices and forecasts. "
+        f"Reply in {language_name}. Do not invent live prices."
+    )
+    user_prompt = {
+        "question": question,
+        "dashboard_context": context,
+    }
+    payload = {
+        "model": settings["model"],
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": json.dumps(user_prompt, ensure_ascii=False)},
+        ],
+        "temperature": 0.3,
+        "max_tokens": 220,
+    }
+    headers = {
+        "Authorization": f"Bearer {settings['api_key']}",
+        "Content-Type": "application/json",
+    }
+    if settings["provider"] == "openrouter":
+        headers["HTTP-Referer"] = "http://127.0.0.1:5002"
+        headers["X-Title"] = "Farmer Market PF"
+
+    try:
+        api_request = Request(
+            settings["url"],
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        with urlopen(api_request, timeout=12) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        return data["choices"][0]["message"]["content"].strip()
+    except (KeyError, URLError, TimeoutError, socket.timeout, json.JSONDecodeError):
+        return None
+
+
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
@@ -689,6 +758,26 @@ def dashboard():
         weather=weather,
         season=season,
         seasonal_predictions=seasonal_predictions,
+    )
+
+
+@app.route("/api/chatbot", methods=["POST"])
+def chatbot_api():
+    payload = request.get_json(silent=True) or {}
+    question = str(payload.get("question", "")).strip()
+    language = payload.get("language", "en")
+    context = payload.get("context", {})
+
+    if not question:
+        return jsonify({"answer": "", "ai_used": False})
+
+    answer = ask_ai_assistant(question, language, context)
+    return jsonify(
+        {
+            "answer": answer or "",
+            "ai_used": bool(answer),
+            "provider": AI_PROVIDER if answer else "",
+        }
     )
 
 

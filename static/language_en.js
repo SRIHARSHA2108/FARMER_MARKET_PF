@@ -69,6 +69,8 @@
             chatPrice: "Top prices",
             chatHelp: "Help",
             chatWelcome: "Hello! Ask me about crop prices, seasonal crops, weather, or how to use this dashboard.",
+            chatMicTitle: "Speak your question",
+            aiThinking: "Thinking...",
         },
         cropNames: {},
         sliceLabels: {

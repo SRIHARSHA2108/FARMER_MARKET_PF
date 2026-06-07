@@ -18,6 +18,8 @@ The application also includes Kannada translation and voice assistance for farme
 - **CSS3**: Responsive layout, dashboard styling, cards, charts, and visual design
 - **JavaScript**: Language switching, voice assistance, and browser interaction
 - **Web Speech API**: Browser-based text-to-speech for English and Kannada
+- **Speech Recognition API**: Browser-based voice commands for search and chatbot questions
+- **Groq / OpenRouter APIs**: Optional AI chatbot backend
 - **Open-Meteo API**: Weather data for forecast signals
 - **VegetableMarketPrice public pages**: Public vegetable price source used for live price scraping
 - **Werkzeug Security**: Password hashing and verification
@@ -41,6 +43,9 @@ The application also includes Kannada translation and voice assistance for farme
 - Dynamic vegetable name translation to Kannada
 - Voice assistant for farmers
 - Stop voice button
+- Floating chatbot
+- Voice-command chatbot
+- Optional AI chatbot using Groq or OpenRouter
 - Responsive UI for desktop and mobile
 
 ## Project Structure
@@ -126,6 +131,28 @@ export FARM_LONGITUDE=77.5946
 python app.py
 ```
 
+## Optional AI Chatbot
+
+The chatbot works locally from dashboard data even without an AI key. You can optionally enable Groq or OpenRouter for smarter chatbot answers.
+
+Groq:
+
+```bash
+export AI_PROVIDER=groq
+export GROQ_API_KEY=your_groq_api_key
+export GROQ_MODEL=llama-3.1-8b-instant
+python app.py
+```
+
+OpenRouter:
+
+```bash
+export AI_PROVIDER=openrouter
+export OPENROUTER_API_KEY=your_openrouter_api_key
+export OPENROUTER_MODEL=openai/gpt-4o-mini
+python app.py
+```
+
 ## Season Override
 
 The app can automatically detect the season by month. You can also force a season in `app.py`:
@@ -167,6 +194,7 @@ GitHub: [SRIHARSHA2108](https://github.com/SRIHARSHA2108)
 - Added crop images, visual cards, and pie charts
 - Added English and Kannada translation modules
 - Added browser-based voice assistance for farmers
+- Added floating voice-command chatbot
 
 ## Notes
 

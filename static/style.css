@@ -1265,7 +1265,7 @@ button {
 
 .chatbot-form {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 8px;
     padding: 12px;
     border-top: 1px solid var(--line);
@@ -1278,6 +1278,11 @@ button {
 .chatbot-form button {
     width: auto;
     margin: 0;
+}
+
+.chatbot-form button.listening {
+    background: var(--warning);
+    border-color: var(--warning);
 }
 
 .chatbot-suggestions {
