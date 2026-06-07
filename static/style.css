@@ -68,6 +68,17 @@ svg {
     gap: 18px;
 }
 
+.nav-action {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
 .language-tools {
     display: flex;
     align-items: center;
@@ -1508,34 +1519,43 @@ button {
     }
 
     .navbar {
+        display: grid;
+        grid-template-columns: 1fr;
         gap: 12px;
         padding: 14px;
     }
 
     .brand {
+        display: block;
         font-size: 19px;
+        text-align: center;
     }
 
-    .nav-links {
-        width: 100%;
-        align-items: stretch;
-    }
-
-    .language-tools,
     .nav-links {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        align-items: stretch;
+        gap: 8px;
     }
 
     .language-tools {
+        display: grid;
         grid-column: 1 / -1;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
     }
 
     .small-tool,
-    .nav-links a {
+    .nav-action {
+        width: 100%;
+        min-height: 40px;
         min-width: 0;
         padding-right: 8px;
         padding-left: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         text-align: center;
         overflow-wrap: anywhere;
         white-space: normal;
@@ -1676,7 +1696,7 @@ button {
 @media (max-width: 430px) {
     .navbar {
         align-items: stretch;
-        padding: 12px;
+        padding: 10px;
     }
 
     .brand {
@@ -1686,7 +1706,11 @@ button {
 
     .nav-links,
     .language-tools {
-        gap: 8px;
+        gap: 6px;
+    }
+
+    .language-tools {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .small-tool,
@@ -1836,8 +1860,7 @@ button {
 }
 
 @media (max-width: 360px) {
-    .language-tools,
-    .nav-links {
+    .language-tools {
         grid-template-columns: 1fr;
     }
 

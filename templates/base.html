@@ -17,11 +17,11 @@
                 <button type="button" class="small-tool" data-stop-speech data-i18n="stopVoice">Stop</button>
             </div>
             {% if session.get("user_phone") %}
-                <a href="{{ url_for('dashboard') }}" data-i18n="dashboard">Dashboard</a>
-                <a href="{{ url_for('logout') }}" data-i18n="logout">Logout</a>
+                <a class="nav-action" href="{{ url_for('dashboard') }}" data-i18n="dashboard">Dashboard</a>
+                <a class="nav-action" href="{{ url_for('logout') }}" data-i18n="logout">Logout</a>
             {% else %}
-                <a href="{{ url_for('login') }}" data-i18n="login">Login</a>
-                <a class="button-link" href="{{ url_for('register') }}" data-i18n="register">Register</a>
+                <a class="nav-action" href="{{ url_for('login') }}" data-i18n="login">Login</a>
+                <a class="button-link nav-action" href="{{ url_for('register') }}" data-i18n="register">Register</a>
             {% endif %}
         </div>
     </nav>
