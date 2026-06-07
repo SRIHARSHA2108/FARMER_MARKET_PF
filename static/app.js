@@ -33,6 +33,11 @@
         document.querySelectorAll("[data-search-mic]").forEach((button) => {
             button.textContent = dictionary.mic || "Mic";
         });
+        document.querySelectorAll("[data-chat-messages]").forEach((messages) => {
+            if (!messages.children.length) {
+                addChatMessage(dictionary.chatWelcome, "bot");
+            }
+        });
         document.querySelectorAll("[data-crop-name]").forEach((element) => {
             const originalName = element.getAttribute("data-crop-name");
             element.textContent = languageModule.translateCropName(originalName);
@@ -198,6 +203,98 @@
         }
     }
 
+    function addChatMessage(text, sender) {
+        const messages = document.querySelector("[data-chat-messages]");
+        if (!messages) {
+            return;
+        }
+        const message = document.createElement("div");
+        message.className = `chat-message ${sender}`;
+        message.textContent = text;
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function getCropInfoFromCard(card, languageModule) {
+        const cropElement = card.querySelector("[data-crop-name]");
+        const originalName = cropElement?.getAttribute("data-crop-name") || "";
+        return {
+            originalName,
+            translatedName: languageModule.translateCropName(originalName),
+            price: card.querySelector(".crop-card-head strong")?.textContent.trim() || "",
+            minPrice: card.querySelector(".crop-stats div:nth-child(1) strong")?.textContent.trim() || "",
+            maxPrice: card.querySelector(".crop-stats div:nth-child(2) strong")?.textContent.trim() || "",
+            forecast: card.querySelector(".crop-stats div:nth-child(3) strong")?.textContent.trim() || "",
+        };
+    }
+
+    function answerChat(question) {
+        const languageModule = getLanguageModule(getLanguage());
+        const responses = languageModule.chatResponses;
+        const normalizedQuestion = question.toLowerCase();
+        const cards = Array.from(document.querySelectorAll(".crop-card"));
+
+        if (!cards.length) {
+            return responses.noDashboard;
+        }
+        if (normalizedQuestion.includes("help") || normalizedQuestion.includes("ಸಹಾಯ")) {
+            return responses.help;
+        }
+        if (normalizedQuestion.includes("season") || normalizedQuestion.includes("ಋತು")) {
+            const seasonText = document.querySelector(".season-panel")?.innerText.trim();
+            return seasonText || responses.season;
+        }
+        if (normalizedQuestion.includes("weather") || normalizedQuestion.includes("rain") || normalizedQuestion.includes("ಹವಾಮಾನ") || normalizedQuestion.includes("ಮಳೆ")) {
+            return document.querySelector(".weather-card")?.innerText.trim() || responses.weather;
+        }
+        if (normalizedQuestion.includes("top") || normalizedQuestion.includes("price") || normalizedQuestion.includes("ಬೆಲೆ") || normalizedQuestion.includes("ಮುಖ್ಯ")) {
+            const topPrices = cards.slice(0, 4).map((card) => {
+                const info = getCropInfoFromCard(card, languageModule);
+                return `${info.translatedName}: ${info.price}`;
+            });
+            return `${responses.topPrices} ${topPrices.join(", ")}`;
+        }
+
+        const matchedCard = cards.find((card) => {
+            const info = getCropInfoFromCard(card, languageModule);
+            const searchText = `${info.originalName} ${info.translatedName}`.toLowerCase();
+            return searchText.split(/\s+/).some((word) => word.length > 2 && normalizedQuestion.includes(word));
+        });
+        if (!matchedCard) {
+            return responses.notFound;
+        }
+
+        const info = getCropInfoFromCard(matchedCard, languageModule);
+        if (getLanguage() === "kn") {
+            return `${info.translatedName}: ಪ್ರಸ್ತುತ ಬೆಲೆ ${info.price}, ಕನಿಷ್ಠ ${info.minPrice}, ಗರಿಷ್ಠ ${info.maxPrice}, 4 ವಾರಗಳ ಮುನ್ಸೂಚನೆ ${info.forecast}.`;
+        }
+        return `${info.translatedName}: current price ${info.price}, minimum ${info.minPrice}, maximum ${info.maxPrice}, 4 week forecast ${info.forecast}.`;
+    }
+
+    function openChatbot() {
+        const panel = document.querySelector("[data-chat-panel]");
+        if (panel) {
+            panel.hidden = false;
+            document.querySelector("[data-chat-input]")?.focus();
+        }
+    }
+
+    function closeChatbot() {
+        const panel = document.querySelector("[data-chat-panel]");
+        if (panel) {
+            panel.hidden = true;
+        }
+    }
+
+    function submitChat(question) {
+        const cleanQuestion = question.trim();
+        if (!cleanQuestion) {
+            return;
+        }
+        addChatMessage(cleanQuestion, "user");
+        addChatMessage(answerChat(cleanQuestion), "bot");
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         setLanguage(getLanguage());
         document.querySelectorAll("[data-lang-button]").forEach((button) => {
@@ -217,6 +314,23 @@
         });
         document.querySelectorAll("[data-search-mic]").forEach((button) => {
             button.addEventListener("click", () => startSearchMic(button));
+        });
+        document.querySelectorAll("[data-chat-toggle]").forEach((button) => {
+            button.addEventListener("click", openChatbot);
+        });
+        document.querySelectorAll("[data-chat-close]").forEach((button) => {
+            button.addEventListener("click", closeChatbot);
+        });
+        document.querySelectorAll("[data-chat-form]").forEach((form) => {
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+                const input = form.querySelector("[data-chat-input]");
+                submitChat(input.value);
+                input.value = "";
+            });
+        });
+        document.querySelectorAll("[data-chat-suggestion]").forEach((button) => {
+            button.addEventListener("click", () => submitChat(button.textContent));
         });
         filterCrops();
     });

@@ -39,6 +39,30 @@
 
         {% block content %}{% endblock %}
     </main>
+
+    <section class="chatbot-widget" data-chatbot>
+        <button type="button" class="chatbot-toggle" data-chat-toggle data-i18n-title="chatTitle" title="Open chatbot">Chat</button>
+        <div class="chatbot-panel" data-chat-panel hidden>
+            <div class="chatbot-header">
+                <div>
+                    <strong data-i18n="chatTitle">Farmer Assistant</strong>
+                    <span data-i18n="chatSubtitle">Ask about crops and prices</span>
+                </div>
+                <button type="button" data-chat-close aria-label="Close">x</button>
+            </div>
+            <div class="chatbot-messages" data-chat-messages></div>
+            <form class="chatbot-form" data-chat-form>
+                <input type="text" data-chat-input data-i18n-placeholder="chatPlaceholder" placeholder="Ask about tomato price...">
+                <button type="submit" data-i18n="send">Send</button>
+            </form>
+            <div class="chatbot-suggestions">
+                <button type="button" data-chat-suggestion="season" data-i18n="chatSeason">Season crops</button>
+                <button type="button" data-chat-suggestion="price" data-i18n="chatPrice">Top prices</button>
+                <button type="button" data-chat-suggestion="help" data-i18n="chatHelp">Help</button>
+            </div>
+        </div>
+    </section>
+
     <script src="{{ url_for('static', filename='language_en.js') }}"></script>
     <script src="{{ url_for('static', filename='language_kn.js') }}"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>

@@ -61,6 +61,14 @@
             mic: "Mic",
             listening: "Listening",
             speechNotSupported: "Voice search is not supported in this browser.",
+            chatTitle: "Farmer Assistant",
+            chatSubtitle: "Ask about crops and prices",
+            chatPlaceholder: "Ask about tomato price...",
+            send: "Send",
+            chatSeason: "Season crops",
+            chatPrice: "Top prices",
+            chatHelp: "Help",
+            chatWelcome: "Hello! Ask me about crop prices, seasonal crops, weather, or how to use this dashboard.",
         },
         cropNames: {},
         sliceLabels: {
@@ -96,6 +104,14 @@
         },
         buildSingleCropSpeech(context) {
             return `${context.crop}. Current price is ${context.price}. Minimum price is ${context.minPrice}. Maximum price is ${context.maxPrice}. Four week forecast is ${context.forecast}. Rain status is ${context.rain}.`;
+        },
+        chatResponses: {
+            noDashboard: "Please login and open the dashboard to ask about live crop prices.",
+            help: "You can ask: tomato price, seasonal crops, weather, top prices, or how to use search and voice.",
+            season: "Seasonal crop suggestions are shown in the Seasonal Crops section on the dashboard.",
+            weather: "Weather details are shown at the top of the dashboard. Weather is used for forecast signals.",
+            topPrices: "Here are some visible crop prices:",
+            notFound: "I could not find that crop on this page. Try another crop name or use the search bar.",
         },
     };
 })();
