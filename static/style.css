@@ -16,9 +16,16 @@
     box-sizing: border-box;
 }
 
+html {
+    width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     margin: 0;
+    width: 100%;
     min-height: 100vh;
+    overflow-x: hidden;
     background:
         linear-gradient(rgba(245, 247, 242, 0.92), rgba(245, 247, 242, 0.96)),
         url("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1800&q=80");
@@ -32,6 +39,12 @@ body {
 a {
     color: var(--green);
     text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+img,
+svg {
+    max-width: 100%;
 }
 
 .navbar {
@@ -182,6 +195,7 @@ label {
 
 input,
 select {
+    min-width: 0;
     width: 100%;
     height: 44px;
     padding: 0 12px;
@@ -1523,6 +1537,8 @@ button {
         padding-right: 8px;
         padding-left: 8px;
         text-align: center;
+        overflow-wrap: anywhere;
+        white-space: normal;
     }
 
     .hero {
@@ -1572,6 +1588,18 @@ button {
         padding: 16px;
     }
 
+    .stats-grid,
+    .auto-grid,
+    .market-panel,
+    .auto-market,
+    .crop-card,
+    .season-panel,
+    .notification-panel,
+    .search-panel {
+        min-width: 0;
+        width: 100%;
+    }
+
     .dashboard h1 {
         font-size: 34px;
     }
@@ -1603,6 +1631,8 @@ button {
 
     .pie-chart {
         padding: 12px;
+        width: 100%;
+        overflow: hidden;
     }
 
     .signal-row {
@@ -1630,6 +1660,7 @@ button {
         right: 0;
         left: 0;
         width: 100%;
+        max-width: 100%;
         grid-template-rows: auto minmax(180px, 44vh) auto auto;
     }
 
@@ -1663,10 +1694,23 @@ button {
     .primary-btn,
     .secondary-btn,
     button {
+        width: auto;
         min-height: 40px;
         padding-right: 8px;
         padding-left: 8px;
         font-size: 13px;
+        white-space: normal;
+    }
+
+    .auth-card button,
+    .actions a,
+    .notify-btn,
+    .mic-btn,
+    .chatbot-form button,
+    .chatbot-suggestions button,
+    .crop-speak-btn,
+    .crop-card .price-badge {
+        width: 100%;
     }
 
     .hero {
@@ -1703,6 +1747,7 @@ button {
     }
 
     .dashboard {
+        width: 100%;
         padding: 18px 10px;
     }
 
@@ -1716,6 +1761,17 @@ button {
     .season-panel,
     .crop-card {
         padding: 14px;
+    }
+
+    .stat-card strong,
+    .crop-card-head strong,
+    .weather-card strong,
+    .season-picks span,
+    .price-badge,
+    .crop-speak-btn,
+    .notify-btn {
+        overflow-wrap: anywhere;
+        white-space: normal;
     }
 
     .market-title h2,
@@ -1741,6 +1797,7 @@ button {
     .crop-title-wrap {
         display: grid;
         grid-template-columns: 48px minmax(0, 1fr);
+        align-items: center;
     }
 
     .crop-card-head strong {
@@ -1752,7 +1809,8 @@ button {
     }
 
     .pie-chart svg {
-        max-width: 165px;
+        width: min(165px, 100%);
+        max-width: 100%;
     }
 
     .pie-legend span {
@@ -1768,6 +1826,7 @@ button {
 
     .chatbot-panel {
         bottom: 70px;
+        max-height: calc(100vh - 92px);
     }
 
     .chat-message {
