@@ -19,12 +19,12 @@
             <strong>{{ name }}</strong>
         </article>
         <article class="stat-card">
-            <span class="stat-icon" data-i18n="email">Email</span>
-            <strong>{{ email }}</strong>
+            <span class="stat-icon" data-i18n="phoneNumber">Phone Number</span>
+            <strong>{{ phone }}</strong>
         </article>
         <article class="stat-card">
-            <span class="stat-icon" data-i18n="role">Role</span>
-            <strong>{{ role }}</strong>
+            <span class="stat-icon" data-i18n="placeName">Place</span>
+            <strong>{{ place }}</strong>
         </article>
     </div>
 
@@ -44,6 +44,15 @@
         <p class="market-note">
             <span data-i18n="priceSource">Prices come from public market pages. Karnataka values come from the Karnataka page; all-India values are averaged from multiple public state pages.</span>
         </p>
+
+        <div class="notification-panel">
+            <div>
+                <strong data-i18n="priceNotifications">Price Notifications</strong>
+                <span data-i18n="priceNotificationsText">Get quick browser notifications for visible crop price details.</span>
+            </div>
+            <button type="button" class="notify-btn" data-price-notify data-i18n="notifyPrices">Notify price details</button>
+            <small data-notify-status></small>
+        </div>
 
         <div class="search-panel">
             <label for="cropSearch" data-i18n="searchLabel">Search crops</label>

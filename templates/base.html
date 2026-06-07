@@ -16,7 +16,7 @@
                 <button type="button" class="small-tool voice-tool" data-speak-page data-i18n="speak">Speak</button>
                 <button type="button" class="small-tool" data-stop-speech data-i18n="stopVoice">Stop</button>
             </div>
-            {% if session.get("user_email") %}
+            {% if session.get("user_phone") %}
                 <a href="{{ url_for('dashboard') }}" data-i18n="dashboard">Dashboard</a>
                 <a href="{{ url_for('logout') }}" data-i18n="logout">Logout</a>
             {% else %}
@@ -41,7 +41,7 @@
     </main>
 
     <section class="chatbot-widget" data-chatbot>
-        <button type="button" class="chatbot-toggle" data-chat-toggle data-i18n-title="chatTitle" title="Open chatbot">Chat</button>
+        <button type="button" class="chatbot-toggle" data-chat-toggle data-i18n="chatToggle" data-i18n-title="chatTitle" title="Open chatbot">Chat</button>
         <div class="chatbot-panel" data-chat-panel hidden>
             <div class="chatbot-header">
                 <div>

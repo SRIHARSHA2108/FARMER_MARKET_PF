@@ -12,7 +12,7 @@ The application also includes Kannada translation and voice assistance for farme
 
 - **Python**: Backend programming language
 - **Flask**: Web framework for routes, templates, sessions, login, and dashboard
-- **MongoDB**: Local database for storing registered users
+- **MongoDB Atlas**: Cloud database for storing registered users
 - **PyMongo**: Python connector for MongoDB
 - **HTML5**: Page structure
 - **CSS3**: Responsive layout, dashboard styling, cards, charts, and visual design
@@ -22,16 +22,14 @@ The application also includes Kannada translation and voice assistance for farme
 - **Groq / OpenRouter APIs**: Optional AI chatbot backend
 - **Open-Meteo API**: Weather data for forecast signals
 - **VegetableMarketPrice public pages**: Public vegetable price source used for live price scraping
-- **Werkzeug Security**: Password hashing and verification
 
 ## Main Features
 
 - Landing page
 - Farmer registration page
 - Login page
-- Secure password hashing
 - Session-based dashboard access
-- Local MongoDB user storage
+- MongoDB Atlas user storage
 - Karnataka live vegetable price dashboard
 - All-India vegetable price average dashboard
 - Seasonal crop detection
@@ -72,7 +70,7 @@ farmer_market_pf/
 
 ## Database
 
-The app uses local MongoDB.
+The app uses MongoDB Atlas.
 
 ```text
 Database: farmer_market_db
@@ -82,9 +80,9 @@ Collection: users
 User data stored:
 
 - Name
-- Email
-- Hashed password
-- Role
+- Phone number
+- Place
+- Role: Farmer
 
 ## Setup
 
@@ -101,11 +99,15 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Start MongoDB locally:
+Set MongoDB Atlas credentials:
 
 ```bash
-mongod
+export MONGO_USERNAME=Sriharsha
+export MONGO_PASSWORD=your_mongodb_password
+export MONGO_CLUSTER=cluster0.agoo1t9.mongodb.net
 ```
+
+If these variables are not set, the app falls back to local MongoDB at `mongodb://localhost:27017/`.
 
 Run the Flask app:
 
@@ -134,6 +136,24 @@ python app.py
 ## Optional AI Chatbot
 
 The chatbot works locally from dashboard data even without an AI key. You can optionally enable Groq or OpenRouter for smarter chatbot answers.
+
+Hardcoded setup in `app.py`:
+
+```python
+HARDCODED_AI_PROVIDER = "groq"
+HARDCODED_GROQ_API_KEY = "your_groq_api_key"
+HARDCODED_GROQ_MODEL = "llama-3.1-8b-instant"
+```
+
+Or for OpenRouter:
+
+```python
+HARDCODED_AI_PROVIDER = "openrouter"
+HARDCODED_OPENROUTER_API_KEY = "your_openrouter_api_key"
+HARDCODED_OPENROUTER_MODEL = "openai/gpt-4o-mini"
+```
+
+Keep the key fields empty if you want the offline website chatbot fallback.
 
 Groq:
 

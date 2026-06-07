@@ -9,27 +9,79 @@ from functools import wraps
 from html import unescape
 from statistics import mean
 from urllib.error import URLError
+from urllib.parse import quote_plus
 from urllib.request import Request, urlopen
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError, PyMongoError
-from werkzeug.security import check_password_hash, generate_password_hash
 
 
 app = Flask(__name__)
-app.secret_key = "change-this-secret-key"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret-key")
 
-client = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=2000)
+MONGO_USERNAME = os.environ.get("MONGO_USERNAME", "Sriharsha")
+MONGO_PASSWORD = os.environ.get("MONGO_PASSWORD", "")
+MONGO_CLUSTER = os.environ.get("MONGO_CLUSTER", "cluster0.agoo1t9.mongodb.net")
+if os.environ.get("MONGO_URI"):
+    MONGO_URI = os.environ["MONGO_URI"]
+elif MONGO_PASSWORD:
+    MONGO_URI = (
+        f"mongodb+srv://{quote_plus(MONGO_USERNAME)}:{quote_plus(MONGO_PASSWORD)}"
+        f"@{MONGO_CLUSTER}/?appName=Cluster0"
+    )
+else:
+    MONGO_URI = "mongodb://localhost:27017/"
+client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 db = client["farmer_market_db"]
 users = db["users"]
 
 PUBLIC_PRICE_BASE_URL = "https://www.vegetablemarketprice.com/market"
-AI_PROVIDER = os.environ.get("AI_PROVIDER", "").lower()
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+
+# Paste AI API settings here if you do not want to set terminal environment variables.
+# Provider must be either "groq" or "openrouter". Keep keys empty to use local chatbot fallback.
+HARDCODED_AI_PROVIDER = ""
+HARDCODED_GROQ_API_KEY = ""
+HARDCODED_GROQ_MODEL = "llama-3.1-8b-instant"
+HARDCODED_OPENROUTER_API_KEY = ""
+HARDCODED_OPENROUTER_MODEL = "openai/gpt-4o-mini"
+
+AI_PROVIDER = (HARDCODED_AI_PROVIDER or os.environ.get("AI_PROVIDER", "")).lower()
+GROQ_API_KEY = HARDCODED_GROQ_API_KEY or os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", HARDCODED_GROQ_MODEL)
+OPENROUTER_API_KEY = HARDCODED_OPENROUTER_API_KEY or os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", HARDCODED_OPENROUTER_MODEL)
+
+WEBSITE_CONTEXT = {
+    "name": "Farmer Market PF",
+    "purpose": (
+        "A bilingual farmer market web app for farmers and customers. It helps users "
+        "view vegetable market prices, seasonal crop suggestions, weather signals, "
+        "simple future price forecasts, charts, search, and voice assistance."
+    ),
+    "pages": [
+        "Landing page",
+        "Register page",
+        "Login page",
+        "Dashboard",
+    ],
+    "features": [
+        "MongoDB Atlas database for user registration and login",
+        "Karnataka live vegetable prices from public market pages",
+        "All-India vegetable price summaries from public state market pages",
+        "Open-Meteo weather signal for rain and temperature",
+        "Hardcoded seasonal crop lists for Summer, Monsoon, and Winter",
+        "Price forecast visuals using current, minimum, maximum, and future values",
+        "English and Kannada translation",
+        "Browser speech synthesis and speech recognition for voice assistance",
+        "Crop search with mic input",
+        "Bottom-right chatbot for website, crop price, weather, and dashboard help",
+    ],
+    "limits": (
+        "The app gives educational market guidance. It should not claim guaranteed prices "
+        "or invent live crop values that are not present in the dashboard context."
+    ),
+}
 PUBLIC_PRICE_STATES = {
     "andhra-pradesh": "Andhra Pradesh",
     "delhi": "Delhi",
@@ -587,7 +639,14 @@ def build_all_predictions(price_items, weather, season):
 
 
 def ensure_database():
-    users.create_index("email", unique=True)
+    indexes = users.index_information()
+    if "email_1" in indexes:
+        users.drop_index("email_1")
+    users.create_index(
+        "phone",
+        unique=True,
+        partialFilterExpression={"phone": {"$exists": True}},
+    )
 
 
 def get_ai_settings():
@@ -608,6 +667,121 @@ def get_ai_settings():
     return None
 
 
+def normalize_market_text(value):
+    return re.sub(r"[^a-z0-9\s]", " ", str(value).lower()).strip()
+
+
+def find_market_price_match(question, summaries):
+    normalized_question = normalize_market_text(question)
+    question_words = {
+        word
+        for word in normalized_question.split()
+        if len(word) > 2
+        and word
+        not in {
+            "price",
+            "rate",
+            "rates",
+            "current",
+            "today",
+            "live",
+            "market",
+            "vegetable",
+            "vegetables",
+            "details",
+            "detail",
+            "cost",
+            "ಬೆಲೆ",
+        }
+    }
+    matches = []
+
+    for item in summaries:
+        commodity_text = normalize_market_text(item["commodity"])
+        commodity_words = set(commodity_text.split())
+        score = 0
+        if commodity_text and commodity_text in normalized_question:
+            score += 10
+        score += len(question_words.intersection(commodity_words)) * 4
+        if any(word in commodity_text for word in question_words):
+            score += 2
+        if score:
+            matches.append((score, item))
+
+    if not matches:
+        return None
+
+    matches.sort(key=lambda match: (-match[0], match[1]["commodity"]))
+    return matches[0][1]
+
+
+def format_price_line(label, item, language):
+    if not item:
+        return ""
+
+    if language == "kn":
+        return (
+            f"{label}: ಪ್ರಸ್ತುತ Rs. {item['current_price']}/{item['unit']}, "
+            f"ಕನಿಷ್ಠ Rs. {item['min_price']}, ಗರಿಷ್ಠ Rs. {item['max_price']}, "
+            f"ದಿನಾಂಕ {item['latest_date']}."
+        )
+    return (
+        f"{label}: current Rs. {item['current_price']}/{item['unit']}, "
+        f"minimum Rs. {item['min_price']}, maximum Rs. {item['max_price']}, "
+        f"date {item['latest_date']}."
+    )
+
+
+def answer_live_market_question(question, language):
+    normalized_question = normalize_market_text(question)
+    asks_market_price = any(
+        keyword in normalized_question
+        for keyword in ["price", "rate", "cost", "market", "vegetable", "today", "live", "ಬೆಲೆ"]
+    )
+    if not asks_market_price:
+        return None
+
+    karnataka_result = fetch_public_price_records("karnataka", "Karnataka")
+    karnataka_summaries = summarize_commodity_prices(karnataka_result["records"], max_items=80)
+    karnataka_match = find_market_price_match(question, karnataka_summaries)
+
+    india_match = None
+    if karnataka_match:
+        india_result = fetch_all_india_public_prices()
+        india_summaries = summarize_commodity_prices(india_result["records"], max_items=120)
+        india_match = find_market_price_match(karnataka_match["commodity"], india_summaries)
+
+    if not karnataka_match:
+        if language == "kn":
+            return (
+                "ಈ ಬೆಳೆಗಾಗಿ ಲೈವ್ ಮಾರುಕಟ್ಟೆ ಬೆಲೆ ಸಿಗಲಿಲ್ಲ. "
+                "ದಯವಿಟ್ಟು ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನಲ್ಲಿ ಇರುವ ಬೆಳೆ ಹೆಸರನ್ನು ಕೇಳಿ, ಉದಾಹರಣೆ: Tomato price."
+            )
+        return (
+            "I could not find live market details for that crop. "
+            "Please ask using a crop name from the dashboard, for example: Tomato price."
+        )
+
+    if language == "kn":
+        lines = [
+            f"{karnataka_match['commodity']} ಲೈವ್ ಮಾರುಕಟ್ಟೆ ವಿವರಗಳು:",
+            format_price_line("ಕರ್ನಾಟಕ", karnataka_match, language),
+        ]
+        if india_match:
+            lines.append(format_price_line("ಭಾರತ ಸರಾಸರಿ", india_match, language))
+        lines.append("ಮೂಲ: ಸಾರ್ವಜನಿಕ vegetable market price ಪುಟಗಳು.")
+        return " ".join(lines)
+
+    lines = [
+        f"{karnataka_match['commodity']} live market details:",
+        format_price_line("Karnataka", karnataka_match, language),
+    ]
+    if india_match:
+        lines.append(format_price_line("All-India average", india_match, language))
+    lines.append("Source: public vegetable market price pages.")
+    return " ".join(lines)
+
+
 def ask_ai_assistant(question, language, context):
     settings = get_ai_settings()
     if not settings:
@@ -615,13 +789,18 @@ def ask_ai_assistant(question, language, context):
 
     language_name = "Kannada" if language == "kn" else "English"
     system_prompt = (
-        "You are a helpful farmer market assistant. Answer briefly and clearly. "
+        "You are the Farmer Market PF website assistant. Answer as part of this website, "
+        "not as a general chatbot. Help farmers understand this app, login/register, "
+        "dashboard crop prices, seasonal crops, weather, search, and voice features. "
         "Use only the provided dashboard context for crop prices and forecasts. "
-        f"Reply in {language_name}. Do not invent live prices."
+        "If the dashboard context has no crop data, explain how the user can login and open "
+        "the dashboard instead of inventing prices. Keep answers short, practical, and farmer-friendly. "
+        f"Reply fully in {language_name}. Do not invent live prices or guaranteed predictions."
     )
     user_prompt = {
         "question": question,
-        "dashboard_context": context,
+        "website_context": WEBSITE_CONTEXT,
+        "page_context": context,
     }
     payload = {
         "model": settings["model"],
@@ -657,7 +836,7 @@ def ask_ai_assistant(question, language, context):
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
-        if "user_email" not in session:
+        if "user_phone" not in session:
             flash("Please login first.", "warning")
             return redirect(url_for("login"))
         return view(*args, **kwargs)
@@ -674,26 +853,25 @@ def landing():
 def register():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-        role = request.form.get("role", "Customer")
+        phone = request.form.get("phone", "").strip()
+        place = request.form.get("place", "").strip()
 
-        if not name or not email or not password:
+        if not name or not phone or not place:
             flash("All fields are required.", "danger")
             return redirect(url_for("register"))
 
         user = {
             "name": name,
-            "email": email,
-            "password": generate_password_hash(password, method="pbkdf2:sha256"),
-            "role": role,
+            "phone": phone,
+            "place": place,
+            "role": "Farmer",
         }
 
         try:
             ensure_database()
             users.insert_one(user)
         except DuplicateKeyError:
-            flash("An account with this email already exists.", "danger")
+            flash("An account with this phone number already exists.", "danger")
             return redirect(url_for("register"))
         except PyMongoError:
             flash("MongoDB is not running. Start MongoDB and try again.", "danger")
@@ -708,23 +886,24 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
         try:
             ensure_database()
-            user = users.find_one({"email": email})
+            user = users.find_one({"name": name, "phone": phone})
         except PyMongoError:
             flash("MongoDB is not running. Start MongoDB and try again.", "danger")
             return redirect(url_for("login"))
 
-        if user and check_password_hash(user["password"], password):
-            session["user_email"] = user["email"]
+        if user:
+            session["user_phone"] = user["phone"]
             session["user_name"] = user["name"]
-            session["user_role"] = user.get("role", "Customer")
+            session["user_place"] = user.get("place", user.get("village", ""))
+            session["user_role"] = user.get("role", "Farmer")
             flash("Login successful.", "success")
             return redirect(url_for("dashboard"))
 
-        flash("Invalid email or password.", "danger")
+        flash("Invalid name or phone number.", "danger")
         return redirect(url_for("login"))
 
     return render_template("login.html")
@@ -748,7 +927,8 @@ def dashboard():
     return render_template(
         "dashboard.html",
         name=session["user_name"],
-        email=session["user_email"],
+        phone=session["user_phone"],
+        place=session.get("user_place", ""),
         role=session["user_role"],
         karnataka_predictions=karnataka_predictions,
         india_predictions=india_predictions,
@@ -766,10 +946,23 @@ def chatbot_api():
     payload = request.get_json(silent=True) or {}
     question = str(payload.get("question", "")).strip()
     language = payload.get("language", "en")
-    context = payload.get("context", {})
+    context = {
+        "website": WEBSITE_CONTEXT,
+        "current_page": payload.get("context", {}),
+    }
 
     if not question:
         return jsonify({"answer": "", "ai_used": False})
+
+    live_market_answer = answer_live_market_question(question, language)
+    if live_market_answer:
+        return jsonify(
+            {
+                "answer": live_market_answer,
+                "ai_used": False,
+                "provider": "public-market-pages",
+            }
+        )
 
     answer = ask_ai_assistant(question, language, context)
     return jsonify(

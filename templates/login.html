@@ -7,11 +7,11 @@
     <form class="auth-card" method="POST">
         <h1 data-i18n="welcomeBack">Welcome Back</h1>
 
-        <label for="email" data-i18n="email">Email</label>
-        <input id="email" name="email" type="email" placeholder="Enter your email" data-i18n-placeholder="emailPlaceholder" required>
+        <label for="name" data-i18n="fullName">Full Name</label>
+        <input id="name" name="name" type="text" placeholder="Enter your name" data-i18n-placeholder="namePlaceholder" required>
 
-        <label for="password" data-i18n="password">Password</label>
-        <input id="password" name="password" type="password" placeholder="Enter your password" data-i18n-placeholder="passwordPlaceholder" required>
+        <label for="phone" data-i18n="phoneNumber">Phone Number</label>
+        <input id="phone" name="phone" type="tel" placeholder="Enter your phone number" data-i18n-placeholder="phonePlaceholder" required>
 
         <button type="submit" data-i18n="login">Login</button>
         <p><span data-i18n="newUser">New user?</span> <a href="{{ url_for('register') }}" data-i18n="createAccountLower">Create an account</a></p>

@@ -206,6 +206,88 @@
         }
     }
 
+    function setNotificationStatus(text) {
+        const status = document.querySelector("[data-notify-status]");
+        if (status) {
+            status.textContent = text;
+        }
+    }
+
+    async function ensureNotificationPermission(languageModule) {
+        const dictionary = languageModule.translations;
+        if (!("Notification" in window)) {
+            setNotificationStatus(dictionary.notificationsNotSupported);
+            alert(dictionary.notificationsNotSupported);
+            return false;
+        }
+        if (Notification.permission === "granted") {
+            return true;
+        }
+        if (Notification.permission === "denied") {
+            setNotificationStatus(dictionary.notificationsDenied);
+            return false;
+        }
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+            setNotificationStatus(dictionary.notificationsDenied);
+            return false;
+        }
+        return true;
+    }
+
+    function buildCropNotificationText(info, languageModule) {
+        if (getLanguage() === "kn") {
+            return `${info.translatedName}: ಪ್ರಸ್ತುತ ${info.price}, ಕನಿಷ್ಠ ${info.minPrice}, ಗರಿಷ್ಠ ${info.maxPrice}, ಮುನ್ಸೂಚನೆ ${info.forecast}.`;
+        }
+        return `${info.translatedName}: current ${info.price}, minimum ${info.minPrice}, maximum ${info.maxPrice}, forecast ${info.forecast}.`;
+    }
+
+    function getVisibleCropCards() {
+        return Array.from(document.querySelectorAll(".crop-card")).filter((card) => !card.hidden);
+    }
+
+    async function notifyCropPrice(card) {
+        if (!card) {
+            return;
+        }
+        const languageModule = getLanguageModule(getLanguage());
+        const dictionary = languageModule.translations;
+        const hasPermission = await ensureNotificationPermission(languageModule);
+        if (!hasPermission) {
+            return;
+        }
+        const info = getCropInfoFromCard(card, languageModule);
+        const message = buildCropNotificationText(info, languageModule);
+        new Notification(`${dictionary.brand} - ${info.translatedName}`, {
+            body: message,
+            tag: `crop-${info.originalName}`,
+        });
+        setNotificationStatus(dictionary.notificationSent);
+    }
+
+    async function notifyVisiblePrices() {
+        const languageModule = getLanguageModule(getLanguage());
+        const dictionary = languageModule.translations;
+        const cards = getVisibleCropCards().slice(0, 4);
+        if (!cards.length) {
+            setNotificationStatus(dictionary.noResults);
+            return;
+        }
+        const hasPermission = await ensureNotificationPermission(languageModule);
+        if (!hasPermission) {
+            return;
+        }
+        const lines = cards.map((card) => {
+            const info = getCropInfoFromCard(card, languageModule);
+            return `${info.translatedName}: ${info.price}`;
+        });
+        new Notification(dictionary.priceNotificationTitle, {
+            body: lines.join("\n"),
+            tag: "visible-crop-prices",
+        });
+        setNotificationStatus(dictionary.notificationSent);
+    }
+
     function addChatMessage(text, sender) {
         const messages = document.querySelector("[data-chat-messages]");
         if (!messages) {
@@ -256,11 +338,42 @@
         const normalizedQuestion = question.toLowerCase();
         const cards = Array.from(document.querySelectorAll(".crop-card"));
 
-        if (!cards.length) {
-            return responses.noDashboard;
-        }
         if (normalizedQuestion.includes("help") || normalizedQuestion.includes("ಸಹಾಯ")) {
             return responses.help;
+        }
+        if (
+            normalizedQuestion.includes("website") ||
+            normalizedQuestion.includes("project") ||
+            normalizedQuestion.includes("about") ||
+            normalizedQuestion.includes("feature") ||
+            normalizedQuestion.includes("ವೆಬ್") ||
+            normalizedQuestion.includes("ಯೋಜನೆ") ||
+            normalizedQuestion.includes("ಬಗ್ಗೆ")
+        ) {
+            return responses.website;
+        }
+        if (
+            normalizedQuestion.includes("login") ||
+            normalizedQuestion.includes("register") ||
+            normalizedQuestion.includes("account") ||
+            normalizedQuestion.includes("ಲಾಗಿನ್") ||
+            normalizedQuestion.includes("ನೋಂದಣಿ") ||
+            normalizedQuestion.includes("ಖಾತೆ")
+        ) {
+            return responses.accountHelp;
+        }
+        if (
+            normalizedQuestion.includes("voice") ||
+            normalizedQuestion.includes("mic") ||
+            normalizedQuestion.includes("speak") ||
+            normalizedQuestion.includes("ಧ್ವನಿ") ||
+            normalizedQuestion.includes("ಮೈಕ್") ||
+            normalizedQuestion.includes("ಓದಿ")
+        ) {
+            return responses.voiceHelp;
+        }
+        if (!cards.length) {
+            return responses.noDashboard;
         }
         if (normalizedQuestion.includes("season") || normalizedQuestion.includes("ಋತು")) {
             const seasonText = document.querySelector(".season-panel")?.innerText.trim();
@@ -269,13 +382,6 @@
         if (normalizedQuestion.includes("weather") || normalizedQuestion.includes("rain") || normalizedQuestion.includes("ಹವಾಮಾನ") || normalizedQuestion.includes("ಮಳೆ")) {
             return document.querySelector(".weather-card")?.innerText.trim() || responses.weather;
         }
-        if (normalizedQuestion.includes("top") || normalizedQuestion.includes("price") || normalizedQuestion.includes("ಬೆಲೆ") || normalizedQuestion.includes("ಮುಖ್ಯ")) {
-            const topPrices = cards.slice(0, 4).map((card) => {
-                const info = getCropInfoFromCard(card, languageModule);
-                return `${info.translatedName}: ${info.price}`;
-            });
-            return `${responses.topPrices} ${topPrices.join(", ")}`;
-        }
 
         const matchedCard = cards.find((card) => {
             const info = getCropInfoFromCard(card, languageModule);
@@ -283,6 +389,13 @@
             return searchText.split(/\s+/).some((word) => word.length > 2 && normalizedQuestion.includes(word));
         });
         if (!matchedCard) {
+            if (normalizedQuestion.includes("top") || normalizedQuestion.includes("ಮುಖ್ಯ")) {
+                const topPrices = cards.slice(0, 4).map((card) => {
+                    const cropInfo = getCropInfoFromCard(card, languageModule);
+                    return `${cropInfo.translatedName}: ${cropInfo.price}`;
+                });
+                return `${responses.topPrices} ${topPrices.join(", ")}`;
+            }
             return responses.notFound;
         }
 
@@ -416,6 +529,12 @@
         });
         document.querySelectorAll("[data-speak-crop]").forEach((button) => {
             button.addEventListener("click", () => speakCrop(button.closest(".crop-card")));
+        });
+        document.querySelectorAll("[data-notify-crop]").forEach((button) => {
+            button.addEventListener("click", () => notifyCropPrice(button.closest(".crop-card")));
+        });
+        document.querySelectorAll("[data-price-notify]").forEach((button) => {
+            button.addEventListener("click", notifyVisiblePrices);
         });
         document.querySelectorAll("[data-crop-search]").forEach((input) => {
             input.addEventListener("input", filterCrops);

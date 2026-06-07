@@ -10,16 +10,11 @@
         <label for="name" data-i18n="fullName">Full Name</label>
         <input id="name" name="name" type="text" placeholder="Enter your name" data-i18n-placeholder="namePlaceholder" required>
 
-        <label for="email" data-i18n="email">Email</label>
-        <input id="email" name="email" type="email" placeholder="Enter your email" data-i18n-placeholder="emailPlaceholder" required>
+        <label for="phone" data-i18n="phoneNumber">Phone Number</label>
+        <input id="phone" name="phone" type="tel" placeholder="Enter your phone number" data-i18n-placeholder="phonePlaceholder" required>
 
-        <label for="password" data-i18n="password">Password</label>
-        <input id="password" name="password" type="password" placeholder="Create a password" data-i18n-placeholder="createPasswordPlaceholder" required>
-
-        <label for="role" data-i18n="accountType">Account Type</label>
-        <select id="role" name="role">
-            <option value="Farmer" data-i18n="farmer">Farmer</option>
-        </select>
+        <label for="place" data-i18n="placeName">Place</label>
+        <input id="place" name="place" type="text" placeholder="Enter your place" data-i18n-placeholder="placePlaceholder" required>
 
         <button type="submit" data-i18n="register">Register</button>
         <p><span data-i18n="alreadyAccount">Already have an account?</span> <a href="{{ url_for('login') }}" data-i18n="loginHere">Login here</a></p>
