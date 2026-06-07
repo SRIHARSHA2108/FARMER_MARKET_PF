@@ -1641,3 +1641,153 @@ button {
         width: 100%;
     }
 }
+
+@media (max-width: 430px) {
+    .navbar {
+        align-items: stretch;
+        padding: 12px;
+    }
+
+    .brand {
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-links,
+    .language-tools {
+        gap: 8px;
+    }
+
+    .small-tool,
+    .button-link,
+    .primary-btn,
+    .secondary-btn,
+    button {
+        min-height: 40px;
+        padding-right: 8px;
+        padding-left: 8px;
+        font-size: 13px;
+    }
+
+    .hero {
+        min-height: auto;
+        padding: 28px 14px 34px;
+    }
+
+    .eyebrow {
+        font-size: 12px;
+    }
+
+    h1,
+    .dashboard h1 {
+        font-size: 30px;
+    }
+
+    .hero-text,
+    .dashboard-hero p,
+    .market-note,
+    .season-panel p {
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    .auth-card {
+        width: 100%;
+        border-radius: 6px;
+    }
+
+    input,
+    select {
+        height: 42px;
+        font-size: 14px;
+    }
+
+    .dashboard {
+        padding: 18px 10px;
+    }
+
+    .dashboard-hero {
+        min-height: 190px;
+        padding: 14px;
+    }
+
+    .auto-market,
+    .market-panel,
+    .season-panel,
+    .crop-card {
+        padding: 14px;
+    }
+
+    .market-title h2,
+    .market-section h3,
+    .season-panel h3 {
+        font-size: 22px;
+        line-height: 1.2;
+    }
+
+    .notification-panel,
+    .search-panel {
+        padding: 12px;
+    }
+
+    .search-input-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .mic-btn {
+        width: 100%;
+    }
+
+    .crop-title-wrap {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .crop-card-head strong {
+        font-size: 22px;
+    }
+
+    .crop-stats div {
+        padding: 10px;
+    }
+
+    .pie-chart svg {
+        max-width: 165px;
+    }
+
+    .pie-legend span {
+        align-items: flex-start;
+        font-size: 11px;
+        line-height: 1.35;
+    }
+
+    .signal-row span {
+        border-radius: 6px;
+        overflow-wrap: anywhere;
+    }
+
+    .chatbot-panel {
+        bottom: 70px;
+    }
+
+    .chat-message {
+        max-width: 94%;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 360px) {
+    .language-tools,
+    .nav-links {
+        grid-template-columns: 1fr;
+    }
+
+    .chatbot-suggestions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .chatbot-suggestions button {
+        width: 100%;
+    }
+}
